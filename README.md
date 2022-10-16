@@ -1,46 +1,185 @@
-# Getting Started with Create React App
+<p>
+<h1 align="center">
+  speech-recognition-heitech
+</h1>
+<p>
+<p align="center" style="font-size: 1.2rem;">A library that converts speech from the microphone to text and make voice from text that used in React.js components.</p>
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<hr />
 
-## Available Scripts
+## Table of contents
+* [How it works](#how-it-works)
+* [Usage](#usage)
+    - [textRecognizing](#textRecognizing)
+    - [textRecognized](#textRecognized)
+* [Init listening + speaking](#init-listening-+-speaking)
+* [Others functions Client Room](#others-functions-client-room)
+* [Lists devices](#lists-devices)
 
-In the project directory, you can run:
+## How it works
+It uses [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition). Note that browser support for this API is currently limited, with Chrome having the best experience - see [supported browsers](#supported-browsers) for more information.
 
-### `npm start`
+`RoomClient` for listening from microphone, convert to text (+ translate to the choosen language). It also provides functions to speak the selected text.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Usage
+```ts
+Import `RoomClient` from `@heitech/voice-library-npm`
 
-### `npm test`
+const App = () => {
+    UseEffect(()=>{
+        const voiceRecognition = new RoomClient((textRecognizing:string)=>{callbackonTextRecognizing(textRecognizing)},  (textRecognized)=>{callbackOnTextRecognized(textRecognized)});
+    },[])
+    return ()
+}
+```
+You can get text with 2 functions callbackOnTextRecognizing, callbackOnTextRecognized:
+### textRecognizing: string
+### textRecognized 
+    .privTranslations: 
+    {
+        privMap{
+            privKeys: 'vi',
+            privValues: 'Xin chào'
+        }
+    }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Init listening + speaking:
+```ts
+Import `RoomClient` from `@heitech/voice-library-npm`
 
-### `npm run build`
+const Room = () => {
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  const callbackonTextRecognizing = (e: string) => {
+    console.log('callbackonTextRecognizing ', e);
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  }
+  const callbackOnTextRecognized = (e: Object) => {
+    console.log('callbackOnTextRecognized ', e);
+  }
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   UseEffect(() => {
+    const voiceRecognition = new RoomClient(
+      key,
+      region,
+      (textRecognizing: string) => callbackonTextRecognizing(textRecognizing),
+      (textRecognized: object) => callbackOnTextRecognized(textRecognized)
+    );
 
-### `npm run eject`
+    // init listener + speaker and translation
+    // you can find out the language here: https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support
+    voiceRecognition.initTranslation('vi-VN', 'en-US');
+  }, [])
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+  return (
+    // JSX here
+  )
+}
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+* log
+```ts
+callbackonTextRecognizing  Hello
+callbackonTextRecognizing  Hello we
+callbackonTextRecognizing  Hello we are 
+callbackonTextRecognizing  Hello we are heitech
+```
+```ts
+callbackOnTextRecognized  
+    TranslationRecognitionResult {
+        privDuration: 18000,
+        privText: "Hello we are heitech",
+        privTranslations: {
+            privMap: {
+                privValues: ['Xin chào chúng tôi là heitech']
+            }
+        }
+    }
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+<h3> You can use redux to storage the textRecognized:</h3>
 
-## Learn More
+<b>action.ts</b>
+```ts
+export const onSpeech = (data: string) => ({
+  type: TYPES.POST_SPEECH,
+  payload: data
+});
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export const onSpeechFinished = (data: string) => ({
+  type: TYPES.POST_SPEECH_FINISHED,
+  payload: data
+});
+```
+<b>reducer.ts</b>
+```ts
+switch (action.type) {
+    case TYPES.POST_SPEECH:
+      return {
+        ...state,
+        speeching: action.payload,
+        error: '',
+      };
+      
+    case TYPES.POST_SPEECH_FINISHED:
+      return {
+        ...state,
+        textRecognized: action.payload,
+        error: '',
+      };
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    default:
+      return state;
+  }
+```
+<b>Room.tsx</b>
+```ts
+const Room = () => {
+  const dispatch = useDispatch();
+
+ UseEffect(() => {
+    const voiceRecognition = new RoomClient(
+      (textRecognizing: string) => dispatch(onSpeech(textRecognizing)),
+      (textRecognized: object) => dispatch(onSpeechFinished(textRecognizing))
+    );
+
+    voiceRecognition.initTranslation(key,'vi-VN', 'en-US');
+  }, [])
+
+
+  return (
+  // JSX here
+  )
+ }
+```
+
+### Others functions Client Room:
+- voiceRecognition.changeLanguage(language)
+- voiceRecognition.changetranslationLanguage(language)
+- voiceRecognition.close()
+- voiceRecognition.open()
+
+## Lists devices:
+```ts
+voiceRecognition.listDevices().then(data => {
+  console.log(data);
+})
+```
+
+## Room client devices functions:
+- voiceRecognition.enableMic()
+- voiceRecognition.enableWebcam()
+- voiceRecognition.disableMic()
+- voiceRecognition.disableWebcam()
+
+## Git repo example:
+- https://github.com/vantran0101/hei-translate-lib-example
+## Contributors 
+From [Heitech company](https://www.hei.io/company) :
+- [Trang Truong](https://github.com/hei-trang-truong)
+- [Van Tran. H](https://github.com/vantran0101)
+## License
+
+MIT
