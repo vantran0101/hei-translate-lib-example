@@ -170,9 +170,7 @@ voiceRecognition.listDevices().then(data => {
 
 ## Room client devices functions:
 - voiceRecognition.enableMic()
-- voiceRecognition.enableWebcam()
 - voiceRecognition.disableMic()
-- voiceRecognition.disableWebcam()
 
 ## Git repo example:
 - https://github.com/vantran0101/hei-translate-lib-example
