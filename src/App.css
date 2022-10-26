@@ -30,7 +30,10 @@
 }
 
 .info {
-  
+  position: sticky;
+  top: 0px;
+  background-color:#282c34;
+  width: 100%;
 }
 
 .content {
@@ -60,7 +63,11 @@
 
 .translateLanguage {
   font-size: 16px;
-  margin-top: 20px;
+  padding-top: 20px;
+  position: sticky;
+  top: 150px;
+  background-color:#282c34;
+  width: 100%;
 }
 
 .translateLanguage label,.translateLanguage select {
