@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
@@ -45,19 +45,38 @@ navigator.mediaDevices.getUserMedia({ audio: true });
 
 let voiceRecognition: RoomClient | null;
 
+window.HTMLElement.prototype.scrollIntoView = function () { };
+
 function App() {
   const [originalVoice, setOriginalVoice] = useState<string>('')
   const [translatedVoice, setTranslatedVoice] = useState<string>('')
+  const [isTexting, setIsTexting] = useState<boolean>(false)
   const [isListening, setIsListening] = useState<boolean>(true);
+  const [fullText, setFullText] = useState<string>('')
+
+  const scrollRef = useRef<null | HTMLDivElement>(null);
 
   const callbackonTextRecognizing = (e: string) => {
-    setTranslatedVoice('');
+    setIsTexting(true)
     setOriginalVoice(e);
+
   }
 
   const callbackOnTextRecognized = (e: string) => {
-    setTranslatedVoice(e)
+    setIsTexting(false)
+    setTranslatedVoice(e);
   }
+
+  useEffect(() => {
+    if (translatedVoice) {
+      const temp = fullText + `<div style="color: #61dafb">Original Voice:  <span>${originalVoice}</span></div>`
+      const fulltext2 = temp + ` <div style="color: #61dafb">Translated Voice:  <span>${translatedVoice}</span></div><p></p>`
+      console.log(fulltext2);
+      setFullText(fulltext2);
+      // scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
+      window.scrollTo(0, (scrollRef?.current?.offsetTop || 0) - 300);
+    }
+  }, [translatedVoice])
 
   useEffect(() => {
     voiceRecognition = new RoomClient(
@@ -65,36 +84,40 @@ function App() {
       (textRecognized: string) => callbackOnTextRecognized(textRecognized)
     );
 
-    voiceRecognition.initTranslation(YOUR_KEY, 'en-US', 'vi-VN');
+    voiceRecognition.initTranslation('9a5ce5f10a64d86a0eb9e15be562249', 'en-US', 'vi-VN');
 
   }, [])
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={'https://uploads-ssl.webflow.com/62a9b06138aac5c00fbb5f5e/62ad49be82ada255cc95750b_HEI%20LOGO.svg'} className="App-logo" alt="logo" />
-        <p>
-          Heitech Voice Translate Example
-        </p>
+        <div className="info">
+          <img src={'https://uploads-ssl.webflow.com/62a9b06138aac5c00fbb5f5e/62ad49be82ada255cc95750b_HEI%20LOGO.svg'} className="App-logo" alt="logo" />
+          <p>
+            Heitech Voice Translate Example
+          </p>
 
-        {isListening && <button onClick={() => {
-          voiceRecognition?.close();
-          setIsListening(false)
-        }}>TURN LISTENER OFF</button>}
+          {isListening && <button onClick={() => {
+            voiceRecognition?.close();
+            setIsListening(false)
+          }}>TURN LISTENER OFF</button>}
 
-        {!isListening && <button onClick={() => {
-          voiceRecognition?.open();
-          setIsListening(true)
-        }}>TURN LISTENER ON</button>}
-        <p></p>
-
-        <div style={{ color: "#61dafb" }}>Original Voice: </div>
-        <p>{originalVoice}</p>
-        <div style={{ color: "#61dafb" }}>Translated Voice: </div>
-        <p>{translatedVoice}</p>
-
-
+          {!isListening && <button onClick={() => {
+            voiceRecognition?.open();
+            setIsListening(true)
+          }}>TURN LISTENER ON</button>}
+        </div>
+        <div className="content">
+          <div
+            dangerouslySetInnerHTML={{ __html: fullText }}
+          />
+          <div className="realtime" ref={scrollRef} id="scroll" >
+            <div style={{ color: "#61dafb" }}>Original Voice:  <span>{originalVoice}</span></div>
+            <div style={{ color: "#61dafb" }}>Translated Voice:  <span>{isTexting ? '' : translatedVoice}</span></div>
+          </div>
+        </div>
       </header>
+
     </div>
   );
 }
