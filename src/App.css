@@ -58,6 +58,15 @@
   padding: 5px 0;
 }
 
+.translateLanguage {
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.translateLanguage label,.translateLanguage select {
+  margin-right: 15px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
